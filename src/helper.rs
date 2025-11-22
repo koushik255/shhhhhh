@@ -4,6 +4,8 @@ use std::{
     path::PathBuf,
 };
 
+use rayon::prelude::*;
+
 #[derive(PartialEq, PartialOrd, Eq, Ord)]
 pub struct BetterFile {
     pub file_path: PathBuf,
@@ -37,7 +39,9 @@ pub fn extenshik(file_path: &DirEntry) -> (String, String) {
     (fuckyou.to_owned(), metoo.to_owned())
 }
 
-pub fn everything(path: String) {
+// i could just have both functions return a vec and do it like that, or i have them use rc rc
+// might be worse il use rc later
+pub fn everything(path: String) -> Vec<BetterFile> {
     let mut files: Vec<BetterFile> = Vec::new();
 
     let path1 = path.clone();
@@ -50,17 +54,22 @@ pub fn everything(path: String) {
         .map(|file| {
             file.map(|f| {
                 if f.path().is_dir() {
-                    handle_dir(&f);
+                    let dir_files = handle_dir(&f);
+                    for file in dir_files {
+                        files.push(file);
+                    }
                     //dir
                 } else {
                     let (ext, fname) = extenshik(&f);
-                    let brutha = BetterFile {
-                        file_path: f.path(),
-                        file_extention: ext,
-                        file_name: fname,
-                    };
+                    if ext == "mkv".to_string() {
+                        let brutha = BetterFile {
+                            file_path: f.path(),
+                            file_extention: ext,
+                            file_name: fname,
+                        };
 
-                    files.push(brutha);
+                        files.push(brutha);
+                    }
                 };
                 f.path()
             })
@@ -69,32 +78,44 @@ pub fn everything(path: String) {
 
     let mut efwa = efwa.expect("Error collecting files");
 
-    efwa.sort();
+    //efwa.sort();
+
     files.sort();
     files.iter().for_each(|file| {
         println!("File{}", file.file_path.display());
     });
+    files
 }
 
-pub fn handle_dir(file_path: &DirEntry) {
+pub fn handle_dir(file_path: &DirEntry) -> Vec<BetterFile> {
     let dir_to_read = file_path.path().to_path_buf();
-    let efwa: Result<Vec<PathBuf>, io::Error> = read_dir(dir_to_read)
+    let efwa: Result<Vec<DirEntry>, io::Error> = read_dir(dir_to_read)
         .expect("Error reading Directory")
-        .map(|file| file.map(|f| f.path()))
         .collect();
-    // il put rayon in later
-    // remeber this is a crate no its not but im going to remake gtk4shell with better code
-    // oh yeah i need to use rc and rcell to add them to the same vec
 
     let efwa = efwa.expect("error dir");
-    efwa.iter().for_each(|f| {
-        if f.is_dir() {
-            println!("dir-dir");
-            everything(f.to_str().unwrap().to_string());
-        } else {
-            println!("FilefromDir {}", f.display());
-        }
-    });
+
+    let files: Vec<BetterFile> = efwa
+        .par_iter()
+        .flat_map(|f| {
+            if f.path().is_dir() {
+                println!("dir {}", f.path().display());
+                handle_dir(f) // recus
+            } else {
+                let (ext, fname) = extenshik(f);
+                if ext == "mkv" {
+                    vec![BetterFile {
+                        file_path: f.path(),
+                        file_extention: ext,
+                        file_name: fname,
+                    }]
+                } else {
+                    vec![]
+                }
+            }
+        })
+        .collect();
+    files
 }
 
 pub fn greet() {
