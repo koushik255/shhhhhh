@@ -76,13 +76,17 @@ pub fn everything(path: String) -> Vec<BetterFile> {
         })
         .collect();
 
-    let mut efwa = efwa.expect("Error collecting files");
+    // let mut efwa = efwa.expect("Error collecting files");
 
     //efwa.sort();
 
     files.sort();
     files.iter().for_each(|file| {
-        println!("File{}", file.file_path.display());
+        println!(
+            "File{} Ext .{}",
+            file.file_path.display(),
+            file.file_extention
+        );
     });
     files
 }
@@ -99,7 +103,7 @@ pub fn handle_dir(file_path: &DirEntry) -> Vec<BetterFile> {
         .par_iter()
         .flat_map(|f| {
             if f.path().is_dir() {
-                println!("dir {}", f.path().display());
+                //println!("dir {}", f.path().display());
                 handle_dir(f) // recus
             } else {
                 let (ext, fname) = extenshik(f);
@@ -117,7 +121,7 @@ pub fn handle_dir(file_path: &DirEntry) -> Vec<BetterFile> {
         .collect();
     files
 }
-
+/// next thing feature should be if if the dir has like alot of files we skip
 pub fn greet() {
     println!("from helper");
 }

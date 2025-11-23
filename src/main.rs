@@ -5,6 +5,6 @@ fn main() {
     println!("Hello, world!");
     greet();
 
-    let path = "/home/koushikk/Downloads/SHOWS/".to_string();
+    let path = "/home/koushikk/Downloads".to_string();
     everything(path);
 }
