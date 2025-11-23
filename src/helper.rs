@@ -45,7 +45,7 @@ pub fn everything(path: String) -> Vec<BetterFile> {
     let mut files: Vec<BetterFile> = Vec::new();
 
     let path1 = path.clone();
-    let mut pathmine = "/home/koushikk/Downloads/SHOWS/";
+    let mut pathmine = "/home/koushikk/";
     if pathmine.to_string() != path {
         pathmine = path1.as_str();
     }
@@ -53,24 +53,30 @@ pub fn everything(path: String) -> Vec<BetterFile> {
         .expect("Error reading Directory")
         .map(|file| {
             file.map(|f| {
-                if f.path().is_dir() {
-                    let dir_files = handle_dir(&f);
-                    for file in dir_files {
-                        files.push(file);
-                    }
-                    //dir
+                println!("stuck on {:?}", f.path().file_stem()); // stuck on /.var so need to ignore /.{private} dirs
+                let current_dir = f.path().file_stem().unwrap().to_string_lossy().into_owned();
+                if current_dir.contains('.') {
+                    println!("PRIVATE DIR BLUD");
                 } else {
-                    let (ext, fname) = extenshik(&f);
-                    if ext == "mkv".to_string() {
-                        let brutha = BetterFile {
-                            file_path: f.path(),
-                            file_extention: ext,
-                            file_name: fname,
-                        };
+                    if f.path().is_dir() {
+                        let dir_files = handle_dir(&f);
+                        for file in dir_files {
+                            files.push(file);
+                        }
+                        //dir
+                    } else {
+                        let (ext, fname) = extenshik(&f);
+                        if ext == "mkv".to_string() {
+                            let brutha = BetterFile {
+                                file_path: f.path(),
+                                file_extention: ext,
+                                file_name: fname,
+                            };
 
-                        files.push(brutha);
-                    }
-                };
+                            files.push(brutha);
+                        }
+                    };
+                }
                 f.path()
             })
         })
@@ -121,7 +127,9 @@ pub fn handle_dir(file_path: &DirEntry) -> Vec<BetterFile> {
         .collect();
     files
 }
-/// next thing feature should be if if the dir has like alot of files we skip
+/// next thing feature should be if if the dir has like alot of files we skip it and just show the
+/// dir, would be a "too big" check  i could run the each "too big " in a task spwaned by smol
+/// so how would i check if a dir should not be looped over?
 pub fn greet() {
     println!("from helper");
 }
