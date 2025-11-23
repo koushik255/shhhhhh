@@ -45,7 +45,7 @@ pub fn everything(path: String) -> Vec<BetterFile> {
     let mut files: Vec<BetterFile> = Vec::new();
 
     let path1 = path.clone();
-    let mut pathmine = "/home/koushikk/";
+    let mut pathmine = "/home/";
     if pathmine.to_string() != path {
         pathmine = path1.as_str();
     }
@@ -53,13 +53,18 @@ pub fn everything(path: String) -> Vec<BetterFile> {
         .expect("Error reading Directory")
         .map(|file| {
             file.map(|f| {
-                println!("stuck on {:?}", f.path().file_stem()); // stuck on /.var so need to ignore /.{private} dirs
+                //println!("stuck on {:?}", f.path().file_stem()); // stuck on /.var so need to ignore /.{private} dirs
                 let current_dir = f.path().file_stem().unwrap().to_string_lossy().into_owned();
+                // println!("after unwarp");
                 if current_dir.contains('.') {
-                    println!("PRIVATE DIR BLUD");
+                    //println!("PRIVATE DIR BLUD");
                 } else {
+                    // println!("enters the none private section");
                     if f.path().is_dir() {
+                        //println!("BEfore dir handle in none private");
+                        //println!("thing being passed {:?}", f);
                         let dir_files = handle_dir(&f);
+                        println!("STUCK IN NONE PRIVATE {:?}", f);
                         for file in dir_files {
                             files.push(file);
                         }
@@ -99,32 +104,41 @@ pub fn everything(path: String) -> Vec<BetterFile> {
 
 pub fn handle_dir(file_path: &DirEntry) -> Vec<BetterFile> {
     let dir_to_read = file_path.path().to_path_buf();
-    let efwa: Result<Vec<DirEntry>, io::Error> = read_dir(dir_to_read)
-        .expect("Error reading Directory")
-        .collect();
+    let dir_string = dir_to_read.to_string_lossy().to_string();
 
-    let efwa = efwa.expect("error dir");
+    let mut files: Vec<BetterFile> = Vec::new();
 
-    let files: Vec<BetterFile> = efwa
-        .par_iter()
-        .flat_map(|f| {
-            if f.path().is_dir() {
-                //println!("dir {}", f.path().display());
-                handle_dir(f) // recus
-            } else {
-                let (ext, fname) = extenshik(f);
-                if ext == "mkv" {
-                    vec![BetterFile {
-                        file_path: f.path(),
-                        file_extention: ext,
-                        file_name: fname,
-                    }]
+    if dir_string.contains('.') {
+        //println!("Private skip this ");
+    } else {
+        //println!("DIR FROM HANDLE DIR {}", dir_to_read.display());
+        let efwa: Result<Vec<DirEntry>, io::Error> = read_dir(dir_to_read)
+            .expect("Error reading Directory")
+            .collect();
+
+        let efwa = efwa.expect("error dir");
+
+        files = efwa
+            .par_iter()
+            .flat_map(|f| {
+                if f.path().is_dir() {
+                    //println!("dir {}", f.path().display());
+                    handle_dir(f) // recus
                 } else {
-                    vec![]
+                    let (ext, fname) = extenshik(f);
+                    if ext == "mkv" {
+                        vec![BetterFile {
+                            file_path: f.path(),
+                            file_extention: ext,
+                            file_name: fname,
+                        }]
+                    } else {
+                        vec![]
+                    }
                 }
-            }
-        })
-        .collect();
+            })
+            .collect();
+    }
     files
 }
 /// next thing feature should be if if the dir has like alot of files we skip it and just show the
