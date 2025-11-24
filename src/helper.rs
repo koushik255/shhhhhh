@@ -55,14 +55,10 @@ pub fn everything(path: String) -> Vec<BetterFile> {
             file.map(|f| {
                 //println!("stuck on {:?}", f.path().file_stem()); // stuck on /.var so need to ignore /.{private} dirs
                 let current_dir = f.path().file_stem().unwrap().to_string_lossy().into_owned();
-                // println!("after unwarp");
                 if current_dir.contains('.') {
-                    //println!("PRIVATE DIR BLUD");
+                    // try filter instead of what i have right now i would do filter.map does not contain "."
                 } else {
-                    // println!("enters the none private section");
                     if f.path().is_dir() {
-                        //println!("BEfore dir handle in none private");
-                        //println!("thing being passed {:?}", f);
                         let dir_files = handle_dir(&f);
                         println!("STUCK IN NONE PRIVATE {:?}", f);
                         for file in dir_files {
