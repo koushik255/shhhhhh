@@ -1,4 +1,5 @@
 use std::io;
+use std::ops::Deref;
 use std::{
     fs::{DirEntry, read_dir},
     path::PathBuf,
@@ -57,10 +58,12 @@ pub fn everything(path: String) -> Vec<BetterFile> {
                 let current_dir = f.path().file_stem().unwrap().to_string_lossy().into_owned();
                 if current_dir.contains('.') {
                     // try filter instead of what i have right now i would do filter.map does not contain "."
+                    // dude its wraps
+                    // println!("nothgin");
                 } else {
                     if f.path().is_dir() {
                         let dir_files = handle_dir(&f);
-                        println!("STUCK IN NONE PRIVATE {:?}", f);
+                        println!("STUCK IN NOtPRIVATE {:?}", f);
                         for file in dir_files {
                             files.push(file);
                         }
@@ -84,6 +87,10 @@ pub fn everything(path: String) -> Vec<BetterFile> {
         .collect();
 
     // let mut efwa = efwa.expect("Error collecting files");
+    // i cna try regex for matcing the "./"
+
+    // let mut efwa = read_dir(pathmine).into_par_iter().filter_map(|f| {});
+    // let me just try regex first for the private directory checking
 
     //efwa.sort();
 
@@ -94,7 +101,26 @@ pub fn everything(path: String) -> Vec<BetterFile> {
             file.file_path.display(),
             file.file_extention
         );
+        // should make everything lower
     });
+
+    let filecheck = &files;
+    let these_ones = filecheck.deref().iter().par_bridge().filter_map(|f| {
+        if f.file_name.to_lowercase().contains("mono") {
+            //println!("we got a franx diddy");
+            Some(f.file_name.clone())
+            //None
+        } else {
+            //println!("none");
+            //
+            None
+        }
+    });
+    let check_complete: Vec<String> = these_ones.to_owned().collect();
+    check_complete
+        .iter()
+        .for_each(|f| println!("MATCH : {}", f));
+
     files
 }
 
@@ -140,6 +166,9 @@ pub fn handle_dir(file_path: &DirEntry) -> Vec<BetterFile> {
 /// next thing feature should be if if the dir has like alot of files we skip it and just show the
 /// dir, would be a "too big" check  i could run the each "too big " in a task spwaned by smol
 /// so how would i check if a dir should not be looped over?
+/// ok now maybe il make it so you can search for what you want in the files, so for example
+/// if you search {mkv franx} then the darlign in the franx files would show but how would i check
+/// for that
 pub fn greet() {
     println!("from helper");
 }
